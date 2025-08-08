@@ -1,0 +1,1 @@
+{"root":["./src/index.ts","./src/config/database.ts","./src/controllers/paper.controller.ts","./src/controllers/user.controller.ts","./src/models/paper.ts","./src/models/user.ts","./src/routes/paper.routes.ts","./src/routes/user.routes.ts","./src/services/user.service.ts","./src/types/paper.types.ts","./src/types/user.types.ts"],"version":"5.9.2"}

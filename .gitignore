@@ -1,0 +1,23 @@
+
+
+# Node modules
+node_modules/
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.production
+
+# Logs
+logs
+*.log
+
+# Build output
+dist/
+build/
+*.js
+*.js.map
+
+# TypeScript build info
+tsconfig.tsbuildinfo
