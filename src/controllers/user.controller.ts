@@ -1,74 +1,104 @@
 import User from "../models/User.js";
-import { getJWT, getPasswordHash, validateToken, validateUser } from "../services/user.service.js";
+import {
+  getJWT,
+  getPasswordHash,
+  validateUser,
+} from "../services/user.service.js";
+import AppError from "../utils/error.utils.js";
 
-export const register = async (req: any, res: any)=> {
+export const register = async (req: any, res: any, next: any) => {
+  try {
     const { email, password, firstName, lastName, role } = req.body;
 
-    if(!email || !password || !firstName) {
-        return res.status(400).json({
-            message: "Enter the required field",
-        })
+    if (!email || !password || !firstName) {
+        return next(new AppError("Enter required field values ", 400));
+    }
+
+    const user = await User.findOne({ email }).select("+password");
+    if (user) {
+      return next(new AppError("user already exists", 409));
     }
 
     const passwordHash: string = await getPasswordHash(password);
 
-    console.log("password Hash: ", passwordHash)
-
     const resUserData = new User({
-        email, password: passwordHash, firstName, lastName, role
-    })
+      email,
+      password: passwordHash,
+      firstName,
+      lastName,
+      role,
+    });
 
-    const token = await getJWT(email);
+    const token = await getJWT(resUserData._id.toString());
 
-    res.cookie("token", token, { httpOnly: true });
+    res.cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+      });
 
-    // await resUserData.save();
+    await resUserData.save();
 
     res.json({
-        success: true,
-        message: resUserData,
-    })
+      success: true,
+      message: "user registered successfully.",
+      firstName: resUserData.firstName,
+      lastName: resUserData.lastName,
+      email: resUserData.email,
+    });
+  } catch (err) {
+    console.error("Error in register user:", err);
+    return next(new AppError("ERROR: " + err, 400));
+  }
+};
 
-}
-
-export const login = async (req: any, res: any)=> {
+export const login = async (req: any, res: any, next: any) => {
+  try {
     const { email, password } = req.body;
-    const { token } = req.cookies;
 
     if (!password || !email) {
-        return res.status(400).json({ message: "Enter the required fields" });
-      }
-
-    const isValidUser = await validateUser(email, password);
-
-    if(!isValidUser){
-        return res.status(400).json({
-            error: "invalid field values"
-        });
+        return next(new AppError("Enter required field values ", 400));
     }
 
-    const decodedMessage = await validateToken(token);
-    console.log("decoded Msg: ", decodedMessage);
-    // const user = await User.findById(decodedMessage?.id );
+    const validUserDetails = await validateUser(email, password);
 
-    // if(!user) {
-    //     console.log("user doesn't exists", user);
-    // }    
+    if (!validUserDetails) {
+        return next(new AppError("Invalid email or password", 400));
+    }
 
-    const newToken = await getJWT(email);
-    res.cookie("token", newToken, { httpOnly: true });
+    const newToken = getJWT(validUserDetails._id.toString());
+    res.cookie("token", newToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)
+    });
 
     res.status(200).send({
-        success: true,
-        message: "user loggedIn successfully..."
-    })
+      success: true,
+      message: "user loggedIn successfully...",
+    });
+  } catch (err) {
+    console.error("Error in login user:", err);
+    return next(new AppError("ERROR: " + err, 400));
+  }
+};
 
-}
+export const logout = async (req: any, res: any, next: any) => {
+  try {
+    res.clearCookie("token", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+    });
 
-export const logout = async (req: any, body: any)=> {
-    
-}
-
-export const getProfile = async (req: any, body: any)=> {
-
-}
+    res.status(200).json({
+      success: true,
+      message: "logout successfully...",
+    });
+  } catch (err) {
+    console.error("Error in logout user:", err);
+    return next(new AppError("ERROR: " + err, 400));
+  }
+};

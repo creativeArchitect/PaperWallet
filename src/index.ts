@@ -13,7 +13,7 @@ app.use(morgan("dev"));
 
 app.use("/api/users", userRouter);
 
-app.get("/", (req, res) => {
+app.get("/", (req: any, res: any) => {
   console.log("hitting......");
   res.send("Hello World");
 });
