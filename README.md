@@ -1,5 +1,5 @@
 <pre> 
-  \`\`\` paperwallet-backend/ 
+  paperwallet-backend/ 
   ├── src/ │ 
   ├── config/ # MongoDB connection, env config │ 
   ├── controllers/ # Route logic │ 
@@ -10,5 +10,5 @@
   │ └── server.ts # App entry point 
   ├── .env 
   ├── tsconfig.json 
-  └── README.md \`\`\` 
+  └── README.md
 </pre>
