@@ -21,3 +21,6 @@ build/
 
 # TypeScript build info
 tsconfig.tsbuildinfo
+
+# Firebase services info   
+    firebaseService.json
